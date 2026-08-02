@@ -1,0 +1,47 @@
+######################################################
+# TODO: Use this secrets storing technique for other repos
+######################################################
+#
+# Ref: https://www.programonaut.com/how-to-deploy-a-git-repository-to-a-server-using-github-actions/
+#
+# 1. Go to “Settings > Secrets > Actions”
+# 2. Create the following secrets:
+#
+# SSH_PRIVATE_KEY: content of the private key file
+# SSH_USER: user to access the server
+# SSH_HOST: hostname/ip-address of your server
+# WORK_DIR: path to the directory containing the repository
+# MAIN_BRANCH: name of the main branch (mostly main)
+
+on:
+  push:
+    branches:
+      - prod
+  workflow_dispatch:
+
+jobs:
+  deploy_prod:
+    name: deploy_prod
+    runs-on: ubuntu-latest    # is this needed?
+    environment: prod
+
+    steps:
+    - name: install ssh keys
+      # check this thread to understand why its needed:
+      # https://stackoverflow.com/a/70447517
+      run: |
+        install -m 600 -D /dev/null ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+    - name: restart haproxy proxy
+      run: >
+        ssh ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ vars.WORK_DIR }}
+        && docker compose up -d --force-recreate
+        && exit"
+    - name: cleanup
+      run: rm -rf ~/.ssh
+
+# To undo deployment
+# kubectl rollout undo deployment/swamp-app
+
+# Fails in prod with error: caddy-rproxy-1  ●  localhost:5000/caddy-rproxy  false  CreateContainerConfigError
