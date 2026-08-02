@@ -40,8 +40,9 @@ jobs:
         ssh -T ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           set -e
           cd ${{ vars.WORK_DIR }}
+          git fetch origin
           git checkout ${{ vars.MAIN_BRANCH || 'prod' }}
-          git pull
+          git pull origin ${{ vars.MAIN_BRANCH || 'prod' }}
           kubectl create configmap haproxy-config --from-file=haproxy.cfg=haproxy.cfg --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f ./k3s/routing_haproxy_deployment.yaml
           kubectl rollout restart deployment routing-haproxy
