@@ -29,13 +29,15 @@ jobs:
     - name: install ssh keys
       # check this thread to understand why its needed:
       # https://stackoverflow.com/a/70447517
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         install -m 600 -D /dev/null ~/.ssh/id_rsa
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
     - name: deploy via kubernetes
       run: |
-        ssh ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+        ssh -T ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           set -e
           cd ${{ vars.WORK_DIR }}
           git checkout ${{ vars.MAIN_BRANCH || 'prod' }}

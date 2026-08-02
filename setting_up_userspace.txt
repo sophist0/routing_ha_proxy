@@ -37,6 +37,16 @@ Because routerproxy is not a sudoer they cannot change the file ownership.
 
 * Delete everything in the config except the github entry.
 
+* Add the public key to the authorized_keys file.
+
+    cat nuc_id.pub >> authorized_keys
+
+* Set additional permissions and ownership
+
+sudo chown -R routerproxy:routerproxy /home/routerproxy/.ssh
+sudo chmod 700 /home/routerproxy/.ssh
+sudo chmod 600 /home/routerproxy/.ssh/authorized_keys
+
 * Next pull the repo from github into the users home directory.
 
 * Finally add the variables and secrets required to run the github actions deploy script to github.
