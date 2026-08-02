@@ -1,0 +1,49 @@
+* Create the user:
+
+   sudo useradd -m routerproxy
+
+* Assign user password:
+
+   sudo passwd routerproxy
+
+* Add user to the docker group:
+
+   sudo usermod -aG docker routerproxy
+
+* Set new user shell to bash:
+ 
+   sudo usermod -s /bin/bash routerproxy
+
+* Setup github keys. Assuming the sudo user (old) on the host already created them.
+
+    From old user home/.ssh directory:
+
+        sudo cp nuc_id* /home/routerproxy/.ssh/
+
+        sudo cp config /home/routerproxy/.ssh/
+
+    In the new users routerproxy home/.ssh directory:
+
+        sudo chown routerproxy:routerproxy nuc_id*
+        sudo chmod 600 nuc_id*
+
+The actual command look more like this:
+
+   old@nooky-nuc:/home$ sudo chown routerproxy:routerproxy /home/routerproxy/.ssh/nuc_id
+   old@nooky-nuc:/home$ sudo chown routerproxy:routerproxy /home/routerproxy/.ssh/nuc_id.pub
+   old@nooky-nuc:/home$ sudo chown routerproxy:routerproxy /home/routerproxy/.ssh/config
+
+Because routerproxy is not a sudoer they cannot change the file ownership.
+
+* Delete everything in the config except the github entry.
+
+* Next pull the repo from github into the users home directory.
+
+* Finally add the variables and secrets required to run the github actions deploy script to github.
+
+
+########################################
+
+Note: the problem with this is that all users on a host share the same deploy key. But for now its okay.
+
+########################################
