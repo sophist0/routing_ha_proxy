@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: routing-haproxy
+  labels:
+    app: routing-haproxy
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: routing-haproxy
+  template:
+    metadata:
+      labels:
+        app: routing-haproxy
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: routing-haproxy
+          image: haproxy:2.8-alpine
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 0
+            capabilities:
+              add:
+                - NET_BIND_SERVICE
+                - NET_ADMIN
+          volumeMounts:
+            - name: haproxy-config-vol
+              mountPath: /usr/local/etc/haproxy/haproxy.cfg
+              subPath: haproxy.cfg
+      volumes:
+        - name: haproxy-config-vol
+          configMap:
+            name: haproxy-config

@@ -33,15 +33,19 @@ jobs:
         install -m 600 -D /dev/null ~/.ssh/id_rsa
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
-    - name: restart haproxy proxy
-      run: >
-        ssh ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ vars.WORK_DIR }}
-        && docker compose up -d --force-recreate
-        && exit"
+    - name: deploy via kubernetes
+      run: |
+        ssh ${{ vars.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          set -e
+          cd ${{ vars.WORK_DIR }}
+          git checkout ${{ vars.MAIN_BRANCH || 'prod' }}
+          git pull
+          kubectl create configmap haproxy-config --from-file=haproxy.cfg=haproxy.cfg --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f ./k3s/routing_haproxy_deployment.yaml
+          kubectl rollout restart deployment routing-haproxy
+        EOF
     - name: cleanup
       run: rm -rf ~/.ssh
 
 # To undo deployment
-# kubectl rollout undo deployment/swamp-app
-
-# Fails in prod with error: caddy-rproxy-1  ●  localhost:5000/caddy-rproxy  false  CreateContainerConfigError
+# kubectl rollout undo deployment/routing-haproxy

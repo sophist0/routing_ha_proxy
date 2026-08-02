@@ -1,0 +1,21 @@
+To check the routing
+
+Test swampyankeetech.com (routes to 127.0.0.1:8443):
+
+```bash
+curl -v -k --resolve swampyankeetech.com:443:127.0.0.1 https://swampyankeetech.com/
+```
+
+* Test darkroomfinder.org (routes to 127.0.0.1:8444):
+
+```bash
+curl -v -k --resolve darkroomfinder.org:443:127.0.0.1 https://darkroomfinder.org/
+```
+
+For each if the backends are not running you will get an SSL error. To verify functionality look at the ha_proxy logs
+either in k9s or with this command:
+```bash
+kubectl logs -l app=routing-haproxy --trail=20
+```
+
+You should see an attempt to connect to the backend services.
