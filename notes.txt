@@ -19,3 +19,9 @@ kubectl logs -l app=routing-haproxy --trail=20
 ```
 
 You should see an attempt to connect to the backend services.
+
+* To stop the service:
+
+```bash
+kubectl delete -f ./k3s/routing_haproxy_deployment.yaml
+```
